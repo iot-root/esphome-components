@@ -1,6 +1,3 @@
 {
-  "src_filter": [
-    "sparkfun_relay.cpp",
-    "SparkFun_Qwiic_Relay_IDF.cpp"
-  ]
+  "src_filter": ["*.cpp"]
 }

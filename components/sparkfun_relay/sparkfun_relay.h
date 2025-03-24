@@ -1,22 +1,33 @@
 #pragma once
 #include "esphome/core/component.h"
 #include "esphome/components/switch/switch.h"
-// Use our ported IDF version from the vendor folder:
-#include "SparkFun_Qwiic_Relay_IDF.h"
+#include "driver/i2c.h"
+#include "esp_err.h"
 
 namespace esphome {
 namespace sparkfun_relay {
 
-/** 
- * @brief ESPHome switch component for SparkFun Qwiic Relay using ESP-IDF.
- */
+// Ported vendor code integrated into the header.
+class SparkFun_Qwiic_Relay {
+ public:
+  SparkFun_Qwiic_Relay();
+  bool begin(uint8_t address, i2c_port_t port);
+  void relayOn();
+  void relayOff();
+  
+ private:
+  uint8_t _address;
+  i2c_port_t _port;
+  esp_err_t writeCommand(uint8_t command);
+};
+
+// External component that uses the relay.
 class SparkFunRelaySwitch : public switch_::Switch, public Component {
  public:
   void setup() override;
   void write_state(bool state) override;
 
  protected:
-  // Our ported relay object.
   SparkFun_Qwiic_Relay relay_;
 };
 
