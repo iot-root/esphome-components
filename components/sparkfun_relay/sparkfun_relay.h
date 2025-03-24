@@ -2,7 +2,7 @@
 #include "esphome/core/component.h"
 #include "esphome/components/switch/switch.h"
 // Use our ported IDF version from the vendor folder:
-#include "components/sparkfun_relay/vendor/SparkFun_Qwiic_Relay_IDF.h"
+#include "esphome/components/sparkfun_relay/vendor/SparkFun_Qwiic_Relay_IDF.h"
 
 namespace esphome {
 namespace sparkfun_relay {

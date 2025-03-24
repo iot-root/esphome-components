@@ -1,5 +1,4 @@
 {
   "name": "sparkfun_relay",
-  "version": "1.0.0",
   "build_flags": ["-Ivendor"]
 }
