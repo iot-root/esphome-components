@@ -1,7 +1,7 @@
 #pragma once
 #include "esphome/core/component.h"
 #include "esphome/components/switch/switch.h"
-#include <SparkFun_QwiicRelay.h>
+#include <SparkFun_Qwiic_Relay.h>
 
 namespace esphome {
 namespace sparkfun_relay {
