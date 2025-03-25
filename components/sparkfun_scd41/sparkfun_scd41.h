@@ -7,9 +7,10 @@
 namespace esphome {
 namespace sparkfun_scd41 {
 
-class SparkfunSCD41 : public PollingComponent, public i2c::I2CDevice {
+// Note the class name here: SCD41Component
+class SCD41Component : public PollingComponent, public i2c::I2CDevice {
  public:
-  // Assign your sensors
+  // Setters for each sensor
   void set_co2_sensor(sensor::Sensor *co2) { this->co2_ = co2; }
   void set_temperature_sensor(sensor::Sensor *temp) { this->temperature_ = temp; }
   void set_humidity_sensor(sensor::Sensor *rh) { this->humidity_ = rh; }

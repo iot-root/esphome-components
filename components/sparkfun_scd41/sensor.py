@@ -19,9 +19,9 @@ DEPENDENCIES = ["i2c"]
 AUTO_LOAD = ["sensor"]
 
 sparkfun_scd41_ns = cg.esphome_ns.namespace("sparkfun_scd41")
-# This name must match your C++ class name in sparkfun_scd41.h/cpp:
+# This name must match your C++ class in sparkfun_scd41.h:
 SCD41Component = sparkfun_scd41_ns.class_(
-    "SCD41Component",  # <- Must match the C++ class name exactly
+    "SCD41Component",  # Matches the .h/.cpp
     cg.PollingComponent,
     i2c.I2CDevice,
 )
@@ -53,14 +53,12 @@ CONFIG_SCHEMA = cv.All(
             state_class=STATE_CLASS_MEASUREMENT,
         ),
     })
-    # i2c_device_schema allows overriding the address, frequency, etc.
     .extend(i2c.i2c_device_schema(0x62))
     .extend({
         cv.Optional(CONF_UPDATE_INTERVAL, default="60s"): cv.update_interval,
     })
 )
 
-# Must use 'async' version of to_code with ESPHome 2023.6+:
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
