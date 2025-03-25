@@ -1,11 +1,27 @@
 #include "sparkfun_scd41.h"
 #include "esphome/core/log.h"
-#include "esphome/core/helpers.h"  // Allows esphome::delay() under ESP-IDF
+
+#ifdef ARDUINO
+  #include <Arduino.h>
+#else
+  // For ESP-IDF/FreeRTOS
+  #include "freertos/FreeRTOS.h"
+  #include "freertos/task.h"
+#endif
 
 namespace esphome {
 namespace sparkfun_scd41 {
 
 static const char *const TAG = "sparkfun_scd41";
+
+// Simple cross-platform wait in milliseconds
+static inline void wait_ms(uint32_t ms) {
+#ifdef ARDUINO
+  delay(ms);
+#else
+  vTaskDelay(pdMS_TO_TICKS(ms));
+#endif
+}
 
 void SCD41Component::setup() {
   ESP_LOGCONFIG(TAG, "Setting up SCD41 sensor...");
@@ -13,7 +29,7 @@ void SCD41Component::setup() {
   // Send Stop Measurement command first (in case it's already running)
   send_command_(0x3F86);
 
-  // Start periodic measurement
+  // Start periodic measurement (0x21B1)
   if (!send_command_(0x21B1)) {
     ESP_LOGW(TAG, "Failed to start periodic measurement on SCD41");
   }
@@ -43,8 +59,6 @@ void SCD41Component::update() {
 }
 
 bool SCD41Component::send_command_(uint16_t cmd, uint16_t argument, bool has_argument) {
-  // Construct the command buffer
-  // Some commands accept a 16-bit argument + CRC
   uint8_t buf[5];
   buf[0] = static_cast<uint8_t>(cmd >> 8);
   buf[1] = static_cast<uint8_t>(cmd & 0xFF);
@@ -66,28 +80,28 @@ bool SCD41Component::read_measurement_(uint16_t &co2, float &temp, float &hum) {
     return false;
   }
 
-  // Use esphome::delay(1) instead of delay(1) for ESP-IDF compatibility
-  esphome::delay(1);  // Brief wait for data to become ready
+  // Pause briefly so the sensor has time to prepare the data
+  wait_ms(1);
 
   uint8_t data[9];
   if (!this->read(data, 9)) {
     return false;
   }
 
-  // Parse CO2
+  // Parse and CRC-check CO2
   if (compute_crc8_(data, 2) != data[2]) {
     return false;
   }
   co2 = static_cast<uint16_t>((data[0] << 8) | data[1]);
 
-  // Parse Temperature
+  // Parse and CRC-check Temperature
   if (compute_crc8_(&data[3], 2) != data[5]) {
     return false;
   }
   uint16_t raw_temp = static_cast<uint16_t>((data[3] << 8) | data[4]);
   temp = -45.0f + 175.0f * (static_cast<float>(raw_temp) / 65535.0f);
 
-  // Parse Humidity
+  // Parse and CRC-check Humidity
   if (compute_crc8_(&data[6], 2) != data[8]) {
     return false;
   }
@@ -98,7 +112,7 @@ bool SCD41Component::read_measurement_(uint16_t &co2, float &temp, float &hum) {
 }
 
 uint8_t SCD41Component::compute_crc8_(uint8_t *data, uint8_t len) {
-  // SCD41 uses Sensirion's CRC-8 with polynomial 0x31
+  // SCD41 uses Sensirion's CRC-8 polynomial 0x31
   uint8_t crc = 0xFF;
   for (uint8_t i = 0; i < len; i++) {
     crc ^= data[i];
