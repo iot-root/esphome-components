@@ -15,17 +15,20 @@ from esphome.const import (
 )
 from esphome.components import sensor, i2c
 
-# Create a namespace for our code
+DEPENDENCIES = ["i2c"]
+AUTO_LOAD = ["sensor"]
+
 sparkfun_scd41_ns = cg.esphome_ns.namespace("sparkfun_scd41")
+# This name must match your C++ class name in sparkfun_scd41.h/cpp:
 SCD41Component = sparkfun_scd41_ns.class_(
-    "SCD41Component", cg.PollingComponent, i2c.I2CDevice
+    "SCD41Component",  # <- Must match the C++ class name exactly
+    cg.PollingComponent,
+    i2c.I2CDevice,
 )
 
 CONF_CO2 = "co2"
 CONF_TEMPERATURE = "temperature"
 CONF_HUMIDITY = "humidity"
-
-DEPENDENCIES = ["i2c"]
 
 CONFIG_SCHEMA = cv.All(
     sensor.sensor_schema(SCD41Component).extend({
@@ -49,16 +52,17 @@ CONFIG_SCHEMA = cv.All(
             device_class=DEVICE_CLASS_HUMIDITY,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-    }).extend(i2c.i2c_device_schema(0x62)).extend({
+    })
+    # i2c_device_schema allows overriding the address, frequency, etc.
+    .extend(i2c.i2c_device_schema(0x62))
+    .extend({
         cv.Optional(CONF_UPDATE_INTERVAL, default="60s"): cv.update_interval,
     })
 )
 
-# IMPORTANT: 'async def' instead of 'def'
+# Must use 'async' version of to_code with ESPHome 2023.6+:
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
-    
-    # These must be awaited now
     await cg.register_component(var, config)
     await i2c.register_i2c_device(var, config)
 

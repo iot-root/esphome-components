@@ -1,5 +1,6 @@
 #include "sparkfun_scd41.h"
 #include "esphome/core/log.h"
+#include "esphome/core/helpers.h"
 
 namespace esphome {
 namespace sparkfun_scd41 {
@@ -23,7 +24,7 @@ void SparkfunSCD41::update() {
     return;
   }
   // According to the datasheet, wait at least 1ms after sending the read command
-  delay(1);
+  esphome::delay(1);
 
   // Read 9 bytes: 3 words + 3 CRC bytes
   uint8_t raw[9];
