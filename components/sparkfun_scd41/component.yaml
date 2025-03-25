@@ -1,0 +1,10 @@
+name: "sparkfun_scd41"
+version: "1.0"
+
+# Indicate we support both Arduino and ESP-IDF frameworks
+requirements:
+  - idf: "*"
+  - arduino: "*"
+
+esphome:
+  name: "SparkFun SCD41"
